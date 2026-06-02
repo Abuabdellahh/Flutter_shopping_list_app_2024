@@ -1,1 +1,11 @@
 .DS_Store
+
+# Dart/Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+
+# Secret environment file — copy env.example.dart → env.dart and fill in your values
+lib/utils/env.dart

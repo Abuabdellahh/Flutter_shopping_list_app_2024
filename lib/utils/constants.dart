@@ -1,3 +1,5 @@
+import 'package:shopping_list/utils/env.dart';
+
 class AppConstants {
   static const String appTitle = 'Flutter Groceries';
   static const String groceriesScreenTitle = 'Your Groceries';
@@ -7,6 +9,5 @@ class AppConstants {
   static const double colorSwatchSize = 24.0;
   static const double dropdownColorSize = 16.0;
 
-  static const String firebaseBaseUrl =
-      'https://fluttershopping2024-default-rtdb.firebaseio.com';
+  static const String firebaseBaseUrl = Env.firebaseBaseUrl;
 }
