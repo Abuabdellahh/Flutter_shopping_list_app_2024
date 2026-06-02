@@ -6,4 +6,7 @@ class AppConstants {
   static const double defaultPadding = 12.0;
   static const double colorSwatchSize = 24.0;
   static const double dropdownColorSize = 16.0;
+
+  static const String firebaseBaseUrl =
+      'https://fluttershopping2024-default-rtdb.firebaseio.com';
 }

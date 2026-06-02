@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'package:shopping_list/models/grocery_item.dart';
+import 'package:shopping_list/providers/grocery_provider.dart';
 import 'package:shopping_list/utils/constants.dart';
 import 'package:shopping_list/screens/new_item_screen.dart';
 
@@ -12,45 +14,28 @@ class GroceryListScreen extends StatefulWidget {
 }
 
 class _GroceryListScreenState extends State<GroceryListScreen> {
-  final List<GroceryItem> _groceryItems = [];
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(
+      () => context.read<GroceryProvider>().loadItems(),
+    );
+  }
 
   void _addItem() async {
     final newItem = await Navigator.of(context).push<GroceryItem>(
       MaterialPageRoute(builder: (ctx) => const NewItemScreen()),
     );
-    if (newItem == null) return;
-    setState(() => _groceryItems.add(newItem));
+    if (newItem == null || !mounted) return;
+    await context.read<GroceryProvider>().addItem(newItem);
   }
 
   void _removeItem(GroceryItem item) {
-    setState(() => _groceryItems.remove(item));
+    context.read<GroceryProvider>().removeItem(item);
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget content = const Center(
-      child: Text(AppConstants.emptyListMessage),
-    );
-
-    if (_groceryItems.isNotEmpty) {
-      content = ListView.builder(
-        itemCount: _groceryItems.length,
-        itemBuilder: (ctx, index) => Dismissible(
-          key: ValueKey(_groceryItems[index].id),
-          onDismissed: (_) => _removeItem(_groceryItems[index]),
-          child: ListTile(
-            title: Text(_groceryItems[index].name),
-            leading: Container(
-              width: AppConstants.colorSwatchSize,
-              height: AppConstants.colorSwatchSize,
-              color: _groceryItems[index].category.color,
-            ),
-            trailing: Text(_groceryItems[index].quantity.toString()),
-          ),
-        ),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text(AppConstants.groceriesScreenTitle),
@@ -58,7 +43,43 @@ class _GroceryListScreenState extends State<GroceryListScreen> {
           IconButton(onPressed: _addItem, icon: const Icon(Icons.add)),
         ],
       ),
-      body: content,
+      body: Consumer<GroceryProvider>(
+        builder: (ctx, provider, _) {
+          if (provider.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (provider.error != null) {
+            return Center(child: Text(provider.error!));
+          }
+
+          if (provider.items.isEmpty) {
+            return const Center(
+              child: Text(AppConstants.emptyListMessage),
+            );
+          }
+
+          return ListView.builder(
+            itemCount: provider.items.length,
+            itemBuilder: (ctx, index) {
+              final item = provider.items[index];
+              return Dismissible(
+                key: ValueKey(item.id),
+                onDismissed: (_) => _removeItem(item),
+                child: ListTile(
+                  title: Text(item.name),
+                  leading: Container(
+                    width: AppConstants.colorSwatchSize,
+                    height: AppConstants.colorSwatchSize,
+                    color: item.category.color,
+                  ),
+                  trailing: Text(item.quantity.toString()),
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }
